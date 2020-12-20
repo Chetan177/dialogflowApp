@@ -1,0 +1,20 @@
+{
+  "name": "dialogflow-app",
+  "version": "1.0.0",
+  "description": "3clogic 2020 hackathon app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chetan177",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/dialogflow": "^3.3.0",
+    "fs": "0.0.1-security",
+    "minimist": "^1.2.5",
+    "pb-util": "^0.1.3",
+    "stream": "0.0.2",
+    "util": "^0.12.3",
+    "ws": "^7.4.1"
+  }
+}
