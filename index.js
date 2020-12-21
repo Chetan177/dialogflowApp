@@ -57,7 +57,10 @@ function getDialogflowStream() {
 
     const detectStream = sessionClient
         .streamingDetectIntent()
-        .on('error', console.error)
+        .on('error', error =>{
+            console.error(error);
+            writeFlag = false;
+        })
         .on('data', data => {
             if (data.recognitionResult) {
                 console.log(
@@ -104,7 +107,7 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (message) => {
         if (typeof message === 'string') {
             console.log(`received message: ${message}`);
-            
+
             // ToDo save uuid for modify call
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
