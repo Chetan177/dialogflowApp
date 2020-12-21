@@ -1,12 +1,13 @@
 const fs = require('fs');
 const uuid = require('uuid');
+const request = require('http')
 const { struct } = require('pb-util');
 const dialogflow = require('@google-cloud/dialogflow');
 const WebSocket = require('ws');
 const argv = require('minimist')(process.argv.slice(2));
 const util = require('util');
 var FileWriter = require('wav').FileWriter;
-
+let calluuid =""
 
 const port = argv.port && parseInt(argv.port) ? parseInt(argv.port) : 3001
 const audioPath = "/tmp/"
@@ -77,7 +78,8 @@ function getDialogflowStream() {
                 if (data.responseId == '' && data.recognitionResult == null && data.queryResult == null) {
                    let audioFile = writeAudioToFile(data.outputAudio);
                    console.log(`audio file location: ${audioFile}`); 
-
+                   // Call Modify API 
+                   getModifyCall(audioFile)
                 }
 
                 // ToDo Call async modify api with play audio and 30 sec pause.
@@ -91,6 +93,30 @@ function getDialogflowStream() {
 
 }
 
+async function getModifyCall(filePath){
+/*
+modify API request
+/v1.0/accounts/{accID}/calls/{uuid}/modify
+{
+  "cccml": "<Response id='ID2'><Play loop='1'>https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand3.wav</Play></Response>",
+}
+*/
+   let data = {
+        "cccml": "<Response id='Id2'><Play loop='1'>"+filePath+"</Play></Response>",
+      }
+    request.post(
+        'http://localhost:8000/v1.0/accounts/123/calls/'+calluuid+'/modify',
+        data,
+        (error, res, body) => {
+          if (error) {
+            console.error(error)
+            return
+          }
+          console.log(`statusCode: ${res.statusCode}`)
+          console.log(body)
+        }
+      )
+}
 console.log(`listening on port ${port}`);
 
 const wss = new WebSocket.Server({
@@ -107,7 +133,8 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (message) => {
         if (typeof message === 'string') {
             console.log(`received message: ${message}`);
-
+            //uuid-8660df10-0bf3-4813-adae-97baa45c9d03
+            calluuid = message.substr(original.indexOf("uuid-") + 1);
             // ToDo save uuid for modify call
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
