@@ -5,9 +5,11 @@ const dialogflow = require('@google-cloud/dialogflow');
 const WebSocket = require('ws');
 const argv = require('minimist')(process.argv.slice(2));
 const util = require('util');
+var FileWriter = require('wav').FileWriter;
 
 
 const port = argv.port && parseInt(argv.port) ? parseInt(argv.port) : 3001
+const audioPath = "/tmp/"
 
 const credLocation = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 let rawdata = fs.readFileSync(credLocation);
@@ -22,6 +24,17 @@ const languageCode = 'en-US';
 
 let writeFlag = true;
 // Create a stream for the streaming request.
+
+function writeAudioToFile(audioBuffer) {
+    let filePath = audioPath + uuid.v4() + '.wav'
+    let outputFileStream = new FileWriter(filePath, {
+        sampleRate: 16000,
+        channels: 1
+    });
+    outputFileStream.write(audioBuffer);
+    return filePath;
+}
+
 function getDialogflowStream() {
     let sessionClient = new dialogflow.SessionsClient();
 
@@ -51,47 +64,26 @@ function getDialogflowStream() {
                 console.log(
                     `Intermediate transcript: ${data.recognitionResult.transcript}`
                 );
-                if (data.recognitionResult.isFinal == true){
+                if (data.recognitionResult.isFinal == true) {
                     writeFlag = false;
                     detectStream.end();
                 }
             } else {
                 console.log('----------------------------------------------');
-                console.log(util.inspect(data, {showHidden: false, depth: null}));
-                // const result = data.queryResult;
-                // // Instantiates a context client
-                // const contextClient = new dialogflow.ContextsClient();
+                console.log(util.inspect(data, { showHidden: false, depth: null }));
 
-                // console.log(`  Query: ${result.queryText}`);
-                // console.log(`  Response: ${result.fulfillmentText}`);
-                // if (result.intent) {
-                //     console.log(`  Intent: ${result.intent.displayName}`);
-                // } else {
-                //     console.log('  No intent matched.');
-                // }
-                // const parameters = JSON.stringify(struct.decode(result.parameters));
-                // console.log(`  Parameters: ${parameters}`);
-                // if (result.outputContexts && result.outputContexts.length) {
-                //     console.log('  Output contexts:');
-                //     result.outputContexts.forEach(context => {
-                //         const contextId = contextClient.matchContextFromProjectAgentSessionContextName(
-                //             context.name
-                //         );
-                //         const contextParameters = JSON.stringify(
-                //             struct.decode(context.parameters)
-                //         );
-                //         console.log(`    ${contextId}`);
-                //         console.log(`      lifespan: ${context.lifespanCount}`);
-                //         console.log(`      parameters: ${contextParameters}`);
-                //     });
-                // }
+                if (data.responseId == '' && data.recognitionResult == null && data.queryResult == null) {
+                   let audioFile = writeAudioToFile(data.outputAudio);
+                   console.log(`audio file location: ${audioFile}`); 
+
+                }
             }
         });
 
-        // Write the initial stream request to config for audio input.
-        detectStream.write(initialStreamRequest);
+    // Write the initial stream request to config for audio input.
+    detectStream.write(initialStreamRequest);
 
-        return detectStream;
+    return detectStream;
 
 }
 
@@ -115,14 +107,14 @@ wss.on('connection', (ws, req) => {
             console.log(`received message: ${message}`);
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
-            if (writeFlag){
-                dialogflowStreamer.write({inputAudio: message});
-            }else {
+            if (writeFlag) {
+                dialogflowStreamer.write({ inputAudio: message });
+            } else {
                 dialogflowStreamer = getDialogflowStream();
-                dialogflowStreamer.write({inputAudio: message});
+                dialogflowStreamer.write({ inputAudio: message });
                 writeFlag = true;
             }
-            
+
         }
     });
 
