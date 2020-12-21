@@ -28,7 +28,7 @@ let writeFlag = true;
 function writeAudioToFile(audioBuffer) {
     let filePath = audioPath + uuid.v4() + '.wav'
     let outputFileStream = new FileWriter(filePath, {
-        sampleRate: 16000,
+        sampleRate: 24000,
         channels: 1
     });
     outputFileStream.write(audioBuffer);
