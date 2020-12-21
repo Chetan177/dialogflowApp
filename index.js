@@ -23,7 +23,6 @@ const sampleRateHertz = 16000;
 const languageCode = 'en-US';
 
 let writeFlag = true;
-// Create a stream for the streaming request.
 
 function writeAudioToFile(audioBuffer) {
     let filePath = audioPath + uuid.v4() + '.wav'
@@ -77,6 +76,8 @@ function getDialogflowStream() {
                    console.log(`audio file location: ${audioFile}`); 
 
                 }
+
+                // ToDo Call async modify api with play audio and 30 sec pause.
             }
         });
 
@@ -86,8 +87,6 @@ function getDialogflowStream() {
     return detectStream;
 
 }
-
-
 
 console.log(`listening on port ${port}`);
 
@@ -105,6 +104,8 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (message) => {
         if (typeof message === 'string') {
             console.log(`received message: ${message}`);
+            
+            // ToDo save uuid for modify call
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
             if (writeFlag) {
