@@ -1,13 +1,13 @@
 const fs = require('fs');
 const uuid = require('uuid');
-const request = require('http')
+const request = require('request')
 const { struct } = require('pb-util');
 const dialogflow = require('@google-cloud/dialogflow');
 const WebSocket = require('ws');
 const argv = require('minimist')(process.argv.slice(2));
 const util = require('util');
 var FileWriter = require('wav').FileWriter;
-let calluuid =""
+let calluuid = ""
 
 const port = argv.port && parseInt(argv.port) ? parseInt(argv.port) : 3001
 const audioPath = "/tmp/"
@@ -58,7 +58,7 @@ function getDialogflowStream() {
 
     const detectStream = sessionClient
         .streamingDetectIntent()
-        .on('error', error =>{
+        .on('error', error => {
             console.error(error);
             writeFlag = false;
         })
@@ -76,10 +76,10 @@ function getDialogflowStream() {
                 console.log(util.inspect(data, { showHidden: false, depth: null }));
 
                 if (data.responseId == '' && data.recognitionResult == null && data.queryResult == null) {
-                   let audioFile = writeAudioToFile(data.outputAudio);
-                   console.log(`audio file location: ${audioFile}`); 
-                   // Call Modify API 
-                   getModifyCall(audioFile)
+                    let audioFile = writeAudioToFile(data.outputAudio);
+                    console.log(`audio file location: ${audioFile}`);
+                    // Call Modify API 
+                    getModifyCall(audioFile)
                 }
 
             }
@@ -92,29 +92,31 @@ function getDialogflowStream() {
 
 }
 
-async function getModifyCall(filePath){
-/*
-modify API request
-/v1.0/accounts/{accID}/calls/{uuid}/modify
-{
-  "cccml": "<Response id='ID2'><Play loop='1'>https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand3.wav</Play></Response>",
-}
-*/
-   let data = {
-        "cccml": "<Response id='Id2'><Play loop='1'>file_string://"+filePath+"!silence_stream://15000</Play></Response>",
-      }
+async function getModifyCall(filePath) {
+    /*
+    modify API request
+    /v1.0/accounts/{accID}/calls/{uuid}/modify
+    {
+      "cccml": "<Response id='ID2'><Play loop='1'>https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand3.wav</Play></Response>",
+    }
+    */
+    let data = {
+        "cccml": "<Response id='Id2'><Play loop='1'>file_string://" + filePath + "!silence_stream://15000</Play></Response>",
+    }
     request.post(
-        'http://localhost:8888/v1.0/accounts/123/calls/'+calluuid+'/modify',
-        data,
+        'http://localhost:8888/v1.0/accounts/123/calls/' + calluuid + '/modify',
+        {
+            json: data
+        },
         (error, res, body) => {
-          if (error) {
-            console.error(error)
-            return
-          }
-          console.log(`statusCode: ${res.statusCode}`)
-          console.log(body)
+            if (error) {
+                console.error(error)
+                return
+            }
+            console.log(`statusCode: ${res.statusCode}`)
+            console.log(body)
         }
-      )
+    )
 }
 console.log(`listening on port ${port}`);
 
@@ -133,9 +135,8 @@ wss.on('connection', (ws, req) => {
         if (typeof message === 'string') {
             console.log(`received message: ${message}`);
             //uuid-8660df10-0bf3-4813-adae-97baa45c9d03
-            calluuid = message.substr(original.indexOf("uuid-") + 1);
+            calluuid = message.substr(message.indexOf("uuid-") + 1);
             console.log(`UUID: ${calluuid}`)
-
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
             if (writeFlag) {
