@@ -135,8 +135,8 @@ wss.on('connection', (ws, req) => {
         if (typeof message === 'string') {
             console.log(`received message: ${message}`);
             //uuid-8660df10-0bf3-4813-adae-97baa45c9d03
-            calluuid = message
-            console.log(`UUID: ${calluuid}`)
+            calluuid =JSON.parse(message).uuid;
+            console.log(`UUID: ${calluuid}`);
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
             if (writeFlag) {
