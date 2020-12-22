@@ -61,6 +61,7 @@ function getDialogflowStream() {
         .on('error', error => {
             console.error(error);
             writeFlag = false;
+            detectStream.end();
         })
         .on('data', data => {
             if (data.recognitionResult) {
