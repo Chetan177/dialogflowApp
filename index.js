@@ -82,7 +82,6 @@ function getDialogflowStream() {
                    getModifyCall(audioFile)
                 }
 
-                // ToDo Call async modify api with play audio and 30 sec pause.
             }
         });
 
@@ -102,10 +101,10 @@ modify API request
 }
 */
    let data = {
-        "cccml": "<Response id='Id2'><Play loop='1'>"+filePath+"</Play></Response>",
+        "cccml": "<Response id='Id2'><Play loop='1'>file_string://"+filePath+"!silence_stream://15000</Play></Response>",
       }
     request.post(
-        'http://localhost:8000/v1.0/accounts/123/calls/'+calluuid+'/modify',
+        'http://localhost:8888/v1.0/accounts/123/calls/'+calluuid+'/modify',
         data,
         (error, res, body) => {
           if (error) {
@@ -135,7 +134,8 @@ wss.on('connection', (ws, req) => {
             console.log(`received message: ${message}`);
             //uuid-8660df10-0bf3-4813-adae-97baa45c9d03
             calluuid = message.substr(original.indexOf("uuid-") + 1);
-            // ToDo save uuid for modify call
+            console.log(`UUID: ${calluuid}`)
+
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
             if (writeFlag) {
