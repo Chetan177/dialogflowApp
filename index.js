@@ -104,7 +104,7 @@ async function getModifyCall(filePath) {
         "cccml": "<Response id='Id2'><Play loop='1'>file_string://" + filePath + "!silence_stream://15000</Play></Response>",
     }
     request.post(
-        'http://localhost:8888/v1.0/accounts/123/calls/' + calluuid + '/modify',
+        'http://localhost:8888/v1.0/accounts/123/calls/CID__' + calluuid + '/modify',
         {
             json: data
         },
@@ -135,7 +135,7 @@ wss.on('connection', (ws, req) => {
         if (typeof message === 'string') {
             console.log(`received message: ${message}`);
             //uuid-8660df10-0bf3-4813-adae-97baa45c9d03
-            calluuid = message.substr(message.indexOf("uuid-") + 1);
+            calluuid = message
             console.log(`UUID: ${calluuid}`)
         } else if (message instanceof Buffer) {
             // Transform message and write to detect
