@@ -34,13 +34,13 @@ function writeAudioToFile(audioBuffer) {
     outputFileStream.write(audioBuffer);
     return filePath;
 }
-
+let sessionID = uuid.v4();
 function getDialogflowStream() {
     let sessionClient = new dialogflow.SessionsClient();
 
     let sessionPath = sessionClient.projectAgentSessionPath(
         projectId,
-        uuid.v4(),
+        sessionID,
     );
 
     // First Request 
@@ -154,7 +154,9 @@ wss.on('connection', (ws, req) => {
     ws.on('close', (code, reason) => {
         console.log(`socket closed ${code}:${reason}`);
         dialogflowStreamer.end();
+        sessionID = uuid.v4();
     });
+    
 });
 
 // ToDo Further handling of Modify and flow
